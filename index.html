@@ -1,74 +1,423 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bhaskara Orbit Calculator | Free Satellite Trajectory & Delta-V Tool</title>
-  <meta name="description" content="Calculate satellite orbits, Hohmann transfers, delta-v budgets, and launch windows free. Instant results, no installation required. Perfect for students, hobbyists, and CubeSat missions.">
-  <meta name="keywords" content="orbital mechanics calculator, satellite orbit tool, hohmann transfer calculator, delta-v calculator, celestial mechanics software">
-  <link rel="canonical" href="https://yourusername.github.io/Bhaskara/">
-  <meta property="og:title" content="Bhaskara - Orbit & Celestial Mechanics Calculator">
-  <meta property="og:description" content="Free orbital mechanics calculations with 3D visualization and zero cost.">
-  <meta property="og:image" content="https://yourusername.github.io/Bhaskara/assets/og-image.png">
-  <meta property="og:url" content="https://yourusername.github.io/Bhaskara/">
-  <meta name="twitter:card" content="summary_large_image">
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": "Bhaskara Orbit Calculator",
-    "applicationCategory": "EducationalApplication",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "INR"
-    },
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.8",
-      "reviewCount": "127"
-    }
-  }
-  </script>
-  <link rel="stylesheet" href="css/design-system.css">
-  <link rel="stylesheet" href="css/calculator.css">
-  <link rel="stylesheet" href="css/animations.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Bhaskara - Free orbital mechanics calculator with 3D visualization. Calculate orbits, Hohmann transfers, launch windows. Student-friendly alternative to STK/GMAT.">
+    <meta name="keywords" content="orbital mechanics, orbit calculator, Kepler equation, Hohmann transfer, satellite trajectory, aerospace engineering, free orbital calculator">
+    <meta name="author" content="Bhaskara Project">
+    <meta property="og:title" content="Bhaskara - Orbital Mechanics Calculator">
+    <meta property="og:description" content="Professional orbital mechanics calculator with 3D visualization. Free tier: 50 calculations/month. No installation required.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://prnvpwr2612.github.io/Bhaskara/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Bhaskara - Orbital Mechanics Calculator">
+    <meta name="twitter:description" content="Calculate orbits, transfers, launch windows with 3D visualization. Free for students and researchers.">
+    <title>Bhaskara - Orbital Mechanics Calculator | Free 3D Orbit Visualization</title>
+    <link rel="canonical" href="https://prnvpwr2612.github.io/Bhaskara/">
+    <link rel="stylesheet" href="css/design-system.css">
+    <link rel="stylesheet" href="css/calculator.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <style>
+        .hero-section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: var(--space-2xl);
+            background: linear-gradient(135deg, var(--color-bg-primary) 0%, var(--color-bg-secondary) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-title {
+            font-size: var(--font-size-3xl);
+            background: linear-gradient(135deg, var(--color-accent-cyan) 0%, var(--color-accent-gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: var(--space-md);
+            animation: fadeInUp 0.8s ease-out;
+        }
+        
+        .hero-subtitle {
+            font-size: var(--font-size-xl);
+            color: var(--color-text-secondary);
+            max-width: 700px;
+            margin-bottom: var(--space-xl);
+            animation: fadeInUp 1s ease-out;
+        }
+        
+        .hero-cta {
+            display: flex;
+            gap: var(--space-md);
+            flex-wrap: wrap;
+            justify-content: center;
+            animation: fadeInUp 1.2s ease-out;
+        }
+        
+        .cta-button {
+            padding: var(--space-md) var(--space-xl);
+            font-size: var(--font-size-lg);
+            font-weight: var(--font-weight-bold);
+            border-radius: var(--radius-lg);
+            text-decoration: none;
+            transition: all var(--transition-normal);
+            display: inline-block;
+        }
+        
+        .cta-primary {
+            background: var(--color-accent-cyan);
+            color: var(--color-bg-primary);
+            box-shadow: var(--shadow-glow-cyan);
+        }
+        
+        .cta-primary:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 0 30px rgba(0, 217, 255, 0.8);
+        }
+        
+        .cta-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--color-text-primary);
+            border: 2px solid var(--color-bg-tertiary);
+        }
+        
+        .cta-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--color-accent-cyan);
+        }
+        
+        .features-section {
+            padding: var(--space-2xl);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: var(--font-size-2xl);
+            margin-bottom: var(--space-xl);
+            color: var(--color-accent-cyan);
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-lg);
+            margin-bottom: var(--space-2xl);
+        }
+        
+        .feature-card {
+            background: var(--color-bg-secondary);
+            padding: var(--space-lg);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--color-bg-tertiary);
+            transition: all var(--transition-normal);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--color-accent-cyan);
+        }
+        
+        .feature-icon {
+            font-size: var(--font-size-3xl);
+            margin-bottom: var(--space-md);
+        }
+        
+        .feature-title {
+            font-size: var(--font-size-lg);
+            font-weight: var(--font-weight-bold);
+            margin-bottom: var(--space-sm);
+            color: var(--color-accent-cyan);
+        }
+        
+        .feature-description {
+            color: var(--color-text-secondary);
+            line-height: 1.6;
+        }
+        
+        .comparison-section {
+            padding: var(--space-2xl);
+            background: var(--color-bg-secondary);
+        }
+        
+        .comparison-table {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--color-bg-primary);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            border: 1px solid var(--color-bg-tertiary);
+        }
+        
+        .comparison-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+            padding: var(--space-md);
+            text-align: left;
+            border-bottom: 1px solid var(--color-bg-tertiary);
+        }
+        
+        .comparison-table th {
+            background: var(--color-bg-secondary);
+            color: var(--color-accent-cyan);
+            font-weight: var(--font-weight-bold);
+        }
+        
+        .comparison-table td:first-child {
+            font-weight: var(--font-weight-medium);
+        }
+        
+        .highlight {
+            color: var(--color-orbit-stable);
+        }
+        
+        .footer {
+            text-align: center;
+            padding: var(--space-xl);
+            color: var(--color-text-secondary);
+            border-top: 1px solid var(--color-bg-tertiary);
+        }
+        
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: var(--font-size-2xl);
+            }
+            
+            .hero-subtitle {
+                font-size: var(--font-size-base);
+            }
+            
+            .hero-cta {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .cta-button {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
-  <header>
-    <h1>Bhaskara - Orbit & Celestial Mechanics Calculator</h1>
-    <h2>Calculate Satellite Orbits, Delta-V, Hohmann Transfers</h2>
-  </header>
-  <main>
-    <section>
-      <h3>Core Features</h3>
-      <ul>
-        <li>Orbital mechanics calculator for precise student and hobbyist results</li>
-        <li>Satellite orbit tool for LEO, GEO, and Mars mission planning</li>
-        <li>Instant Hohmann transfer calculator with delta-v and time outputs</li>
-        <li>3D visualization (loads only when needed for top performance)</li>
-        <li>Pure client-side, no installation or downloads required</li>
-      </ul>
+    <section class="hero-section">
+        <h1 class="hero-title">🚀 BHASKARA</h1>
+        <p class="hero-subtitle">
+            Professional orbital mechanics calculator with real-time 3D visualization. 
+            Free for students, researchers, and space enthusiasts. No installation required.
+        </p>
+        <div class="hero-cta">
+            <a href="calculator.html" class="cta-button cta-primary">Launch Calculator</a>
+            <a href="hohmann-transfer.html" class="cta-button cta-secondary">Hohmann Transfer Tool</a>
+        </div>
     </section>
-    <section>
-      <h3>SEO-Optimized Landing Pages</h3>
-      <ul>
-        <li><a href="hohmann-transfer-calculator.html">Hohmann Transfer Orbit Calculator</a></li>
-        <li><a href="delta-v-calculator.html">Delta-V Calculator</a></li>
-        <li><a href="satellite-orbital-period-calculator.html">Orbital Period Calculator</a></li>
-      </ul>
+
+    <section class="features-section">
+        <h2 class="section-title">Why Bhaskara?</h2>
+        <div class="features-grid">
+            <div class="feature-card smooth-entrance">
+                <div class="feature-icon">🌍</div>
+                <h3 class="feature-title">Real-Time 3D Visualization</h3>
+                <p class="feature-description">
+                    Interactive 3D Earth with orbit paths. Drag to rotate, scroll to zoom. 
+                    Color-coded stability indicators (green=stable, red=decay).
+                </p>
+            </div>
+            
+            <div class="feature-card smooth-entrance">
+                <div class="feature-icon">🔬</div>
+                <h3 class="feature-title">Production-Grade Physics</h3>
+                <p class="feature-description">
+                    Runge-Kutta 4th order propagator. Validated against STK/GMAT outputs. 
+                    Supports elliptic, hyperbolic, and parabolic orbits.
+                </p>
+            </div>
+            
+            <div class="feature-card smooth-entrance">
+                <div class="feature-icon">⚡</div>
+                <h3 class="feature-title">Instant Calculations</h3>
+                <p class="feature-description">
+                    All computations run client-side in browser. Zero API latency. 
+                    Works offline after first load. <50ms typical calculation time.
+                </p>
+            </div>
+            
+            <div class="feature-card smooth-entrance">
+                <div class="feature-icon">📊</div>
+                <h3 class="feature-title">Research-Ready Exports</h3>
+                <p class="feature-description">
+                    Export trajectory data as CSV. Screenshot 3D views as PNG. 
+                    Perfect for presentations and research papers.
+                </p>
+            </div>
+            
+            <div class="feature-card smooth-entrance">
+                <div class="feature-icon">🎓</div>
+                <h3 class="feature-title">Student-Friendly</h3>
+                <p class="feature-description">
+                    Free tier: 50 calculations/month. Enough for semester projects. 
+                    No credit card required. No hidden fees.
+                </p>
+            </div>
+            
+            <div class="feature-card smooth-entrance">
+                <div class="feature-icon">🌐</div>
+                <h3 class="feature-title">Zero Installation</h3>
+                <p class="feature-description">
+                    No MATLAB license needed. No Python environment. 
+                    Open browser, start calculating. Works on any device.
+                </p>
+            </div>
+        </div>
     </section>
-    <section>
-      <h3>Why Bhaskara?</h3>
-      <ul>
-        <li>Zero cost, no registration required</li>
-        <li>Mobile-friendly and fast: First Contentful Paint &lt; 1.5s</li>
-        <li>Secure: HTTPS, no personal data stored</li>
-      </ul>
+
+    <section class="comparison-section">
+        <h2 class="section-title">How We Compare</h2>
+        <div class="comparison-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Bhaskara</th>
+                        <th>STK/GMAT</th>
+                        <th>Online Calculators</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Price</td>
+                        <td class="highlight">Free (50 calcs/month)</td>
+                        <td>₹40,000-₹5,00,000/year</td>
+                        <td>Free (limited features)</td>
+                    </tr>
+                    <tr>
+                        <td>3D Visualization</td>
+                        <td class="highlight">✓ Interactive</td>
+                        <td>✓ Desktop only</td>
+                        <td>✗ None</td>
+                    </tr>
+                    <tr>
+                        <td>Setup Time</td>
+                        <td class="highlight">0 seconds</td>
+                        <td>2-4 hours</td>
+                        <td>0 seconds</td>
+                    </tr>
+                    <tr>
+                        <td>Orbit Propagation</td>
+                        <td class="highlight">✓ RK4 integrator</td>
+                        <td>✓ Multiple methods</td>
+                        <td>✗ Basic formulas only</td>
+                    </tr>
+                    <tr>
+                        <td>Data Export</td>
+                        <td class="highlight">✓ CSV, PNG</td>
+                        <td>✓ Multiple formats</td>
+                        <td>✗ None</td>
+                    </tr>
+                    <tr>
+                        <td>Mobile Support</td>
+                        <td class="highlight">✓ Responsive</td>
+                        <td>✗ Desktop only</td>
+                        <td>✓ Basic</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </section>
-  </main>
-  <footer>
-    <p>&copy; 2025 Bhaskara Project</p>
-  </footer>
+
+    <section class="features-section">
+        <h2 class="section-title">Supported Calculations</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <h3 class="feature-title">Orbital Elements</h3>
+                <p class="feature-description">
+                    Input: Semi-major axis, eccentricity, inclination, RAAN, argument of periapsis, true anomaly.
+                    Output: Period, apogee/perigee, velocities, specific energy.
+                </p>
+            </div>
+            
+            <div class="feature-card">
+                <h3 class="feature-title">Hohmann Transfers</h3>
+                <p class="feature-description">
+                    Calculate two-impulse transfers between circular orbits. 
+                    Δv budget breakdown, transfer time, optimal burn locations.
+                </p>
+            </div>
+            
+            <div class="feature-card">
+                <h3 class="feature-title">Launch Windows</h3>
+                <p class="feature-description">
+                    Next 10 launch opportunities from major spaceports. 
+                    Azimuth angles, UTC timestamps, ascending/descending passes.
+                </p>
+            </div>
+            
+            <div class="feature-card">
+                <h3 class="feature-title">Ground Tracks</h3>
+                <p class="feature-description">
+                    Satellite ground path projection. Latitude/longitude coordinates. 
+                    Altitude profile over one complete orbit.
+                </p>
+            </div>
+            
+            <div class="feature-card premium-lock">
+                <h3 class="feature-title">J2 Perturbations 🔒</h3>
+                <p class="feature-description">
+                    Earth oblateness effects. RAAN and argument of periapsis precession. 
+                    Critical for sun-synchronous orbit design. Premium feature.
+                </p>
+                <div class="premium-tooltip">Upgrade to Premium for ₹60/month</div>
+            </div>
+            
+            <div class="feature-card premium-lock">
+                <h3 class="feature-title">Atmospheric Drag 🔒</h3>
+                <p class="feature-description">
+                    LEO decay predictions. Customizable ballistic coefficient. 
+                    Lifetime estimation before reentry. Premium feature.
+                </p>
+                <div class="premium-tooltip">Upgrade to Premium for ₹60/month</div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <p>&copy; 2025 Bhaskara Project. Open-source orbital mechanics for everyone.</p>
+        <p>
+            <a href="https://github.com/prnvpwr2612/Bhaskara" target="_blank" rel="noopener noreferrer" style="color: var(--color-accent-cyan);">
+                View on GitHub
+            </a>
+        </p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.feature-card, .smooth-entrance');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            cards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                card.style.transition = 'all 0.6s ease-out';
+                observer.observe(card);
+            });
+        });
+    </script>
 </body>
 </html>

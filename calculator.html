@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Calculate orbital mechanics parameters with real-time 3D visualization. Keplerian elements, orbit propagation, ground tracks.">
+    <meta name="keywords" content="orbit calculator, Keplerian elements, orbital mechanics, satellite trajectory, RK4 propagator">
+    <title>Orbital Calculator - Bhaskara</title>
+    <link rel="stylesheet" href="css/design-system.css">
+    <link rel="stylesheet" href="css/calculator.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+    <header style="padding: var(--space-md); background: var(--color-bg-secondary); border-bottom: 1px solid var(--color-bg-tertiary); display: flex; justify-content: space-between; align-items: center;">
+        <a href="index.html" style="color: var(--color-accent-cyan); font-size: var(--font-size-xl); font-weight: var(--font-weight-bold); text-decoration: none;">
+            🚀 BHASKARA
+        </a>
+        <nav style="display: flex; gap: var(--space-md);">
+            <a href="calculator.html" style="color: var(--color-accent-cyan); text-decoration: none; font-weight: var(--font-weight-medium);">Orbit Calculator</a>
+            <a href="hohmann-transfer.html" style="color: var(--color-text-secondary); text-decoration: none;">Hohmann Transfer</a>
+        </nav>
+        <div class="calculation-counter" style="font-size: var(--font-size-sm); color: var(--color-text-secondary);"></div>
+    </header>
+
+    <main class="calculator-container">
+        <div class="visualization-panel">
+            anvas id="orbit-canvas" class="visualization-canvas"></canvas>
+            <div class="orbit-stability-indicator">Awaiting calculation...</div>
+        </div>
+
+        <aside class="controls-panel">
+            <section class="control-section">
+                <h2 class="control-section-title">Orbital Elements</h2>
+                
+                <div class="input-group">
+                    <label class="input-label" for="input-a">Semi-Major Axis (km)</label>
+                    <input type="number" id="input-a" class="input-field" value="6778" min="6371" max="100000" step="1">
+                    <div class="slider-container">
+                        <input type="range" id="slider-a" class="slider" min="6371" max="50000" step="1" value="6778" data-param="a" data-unit="km">
+                        <div class="slider-value-tooltip">6778 km</div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label" for="input-e">Eccentricity</label>
+                    <input type="number" id="input-e" class="input-field" value="0.0001" min="0" max="0.99" step="0.0001">
+                    <div class="slider-container">
+                        <input type="range" id="slider-e" class="slider" min="0" max="0.9" step="0.01" value="0.0001" data-param="e" data-unit="">
+                        <div class="slider-value-tooltip">0.0001</div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label" for="input-i">Inclination (degrees)</label>
+                    <input type="number" id="input-i" class="input-field" value="51.6" min="0" max="180" step="0.1">
+                    <div class="slider-container">
+                        <input type="range" id="slider-i" class="slider" min="0" max="180" step="0.1" value="51.6" data-param="i" data-unit="°">
+                        <div class="slider-value-tooltip">51.6°</div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label" for="input-raan">RAAN (degrees)</label>
+                    <input type="number" id="input-raan" class="input-field" value="0" min="0" max="360" step="0.1">
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label" for="input-argpe">Argument of Periapsis (degrees)</label>
+                    <input type="number" id="input-argpe" class="input-field" value="0" min="0" max="360" step="0.1">
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label" for="input-ta">True Anomaly (degrees)</label>
+                    <input type="number" id="input-ta" class="input-field" value="0" min="0" max="360" step="0.1">
+                </div>
+            </section>
+
+            <section class="control-section">
+                <button id="calculate-btn" class="button button-primary">Calculate Orbit</button>
+                <button id="animate-btn" class="button button-secondary" style="margin-top: var(--space-md);">Animate</button>
+            </section>
+
+            <section class="control-section results-section">
+                <h2 class="control-section-title">Results</h2>
+            </section>
+
+            <section class="control-section">
+                <h2 class="control-section-title">Export</h2>
+                <button id="export-csv-btn" class="button button-secondary">Export CSV</button>
+                <button id="export-png-btn" class="button button-secondary" style="margin-top: var(--space-sm);">Export PNG</button>
+                <button id="save-project-btn" class="button button-secondary" style="margin-top: var(--space-sm);">Save Project</button>
+            </section>
+        </aside>
+    </main>
+
+    <script src="js/orbital-math.js"></script>
+    <script src="js/usage-tracker.js"></script>
+    <script src="js/visualization.js"></script>
+    <script src="js/ui-controller.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const initialized = VisualizationEngine.init('orbit-canvas');
+            if (!initialized) {
+                console.error('Failed to initialize visualization engine');
+            }
+            
+            UIController.init();
+            
+            const defaultElements = {
+                a: 6778,
+                e: 0.0001,
+                i: 51.6,
+                raan: 0,
+                argPe: 0,
+                trueAnomaly: 0
+            };
+            
+            const period = OrbitalMath.calculateOrbitalPeriod(defaultElements.a);
+            const trajectory = OrbitalMath.propagateOrbitRK4(defaultElements, period, period / 100);
+            VisualizationEngine.renderOrbit(defaultElements, trajectory);
+        });
+    </script>
+</body>
+</html>

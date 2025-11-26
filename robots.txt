@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://prnvpwr2612.github.io/Bhaskara/sitemap.xml
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /

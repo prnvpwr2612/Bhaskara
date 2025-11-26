@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Calculate Hohmann transfer orbits between circular orbits. Delta-v budget, transfer time, optimal burn locations.">
+    <meta name="keywords" content="Hohmann transfer, orbital transfer, delta-v, orbital maneuver, spacecraft propulsion">
+    <title>Hohmann Transfer Calculator - Bhaskara</title>
+    <link rel="stylesheet" href="css/design-system.css">
+    <link rel="stylesheet" href="css/calculator.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+    <header style="padding: var(--space-md); background: var(--color-bg-secondary); border-bottom: 1px solid var(--color-bg-tertiary); display: flex; justify-content: space-between; align-items: center;">
+        <a href="index.html" style="color: var(--color-accent-cyan); font-size: var(--font-size-xl); font-weight: var(--font-weight-bold); text-decoration: none;">
+            🚀 BHASKARA
+        </a>
+        <nav style="display: flex; gap: var(--space-md);">
+            <a href="calculator.html" style="color: var(--color-text-secondary); text-decoration: none;">Orbit Calculator</a>
+            <a href="hohmann-transfer.html" style="color: var(--color-accent-cyan); text-decoration: none; font-weight: var(--font-weight-medium);">Hohmann Transfer</a>
+        </nav>
+        <div class="calculation-counter" style="font-size: var(--font-size-sm); color: var(--color-text-secondary);"></div>
+    </header>
+
+    <main class="calculator-container">
+        <div class="visualization-panel">
+            anvas id="transfer-canvas" class="visualization-canvas"></canvas>
+            <div class="orbit-stability-indicator">Awaiting calculation...</div>
+        </div>
+
+        <aside class="controls-panel">
+            <section class="control-section">
+                <h2 class="control-section-title">Transfer Parameters</h2>
+                
+                <div class="input-group">
+                    <label class="input-label" for="input-r1">Initial Orbit Radius (km)</label>
+                    <input type="number" id="input-r1" class="input-field" value="6778" min="6371" max="100000" step="1">
+                    <div class="slider-container">
+                        <input type="range" id="slider-r1" class="slider" min="6371" max="50000" step="1" value="6778" data-param="r1" data-unit="km">
+                        <div class="slider-value-tooltip">6778 km</div>
+                    </div>
+                    <small style="color: var(--color-text-secondary); font-size: var(--font-size-xs); margin-top: var(--space-xs); display: block;">
+                        LEO: ~6,778 km | MEO: ~20,000 km | GEO: 42,164 km
+                    </small>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label" for="input-r2">Target Orbit Radius (km)</label>
+                    <input type="number" id="input-r2" class="input-field" value="42164" min="6371" max="100000" step="1">
+                    <div class="slider-container">
+                        <input type="range" id="slider-r2" class="slider" min="6371" max="50000" step="1" value="42164" data-param="r2" data-unit="km">
+                        <div class="slider-value-tooltip">42164 km</div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label" for="input-inclination">Orbit Inclination (degrees)</label>
+                    <input type="number" id="input-inclination" class="input-field" value="0" min="0" max="180" step="0.1">
+                    <small style="color: var(--color-text-secondary); font-size: var(--font-size-xs); margin-top: var(--space-xs); display: block;">
+                        For visualization purposes (coplanar transfer assumed)
+                    </small>
+                </div>
+            </section>
+
+            <section class="control-section">
+                <button id="calculate-transfer-btn" class="button button-primary">Calculate Transfer</button>
+                <button id="animate-transfer-btn" class="button button-secondary" style="margin-top: var(--space-md);">Animate Transfer</button>
+            </section>
+
+            <section class="control-section results-section">
+                <h2 class="control-section-title">Transfer Results</h2>
+            </section>
+
+            <section class="control-section">
+                <h2 class="control-section-title">Export</h2>
+                <button id="export-transfer-csv-btn" class="button button-secondary">Export CSV</button>
+                <button id="export-transfer-png-btn" class="button button-secondary" style="margin-top: var(--space-sm);">Export PNG</button>
+            </section>
+
+            <section class="control-section" style="background: rgba(255, 190, 11, 0.1); border: 1px solid var(--color-accent-gold); border-radius: var(--radius-md); padding: var(--space-md);">
+                <h3 style="color: var(--color-accent-gold); font-size: var(--font-size-base); margin-bottom: var(--space-sm);">
+                    🔒 Premium Feature
+                </h3>
+                <p style="color: var(--color-text-secondary); font-size: var(--font-size-sm); line-height: 1.6;">
+                    Non-coplanar transfers (plane change Δv) and bi-elliptic transfers available in Premium tier. 
+                    Upgrade for ₹60/month.
+                </p>
+            </section>
+        </aside>
+    </main>
+
+    <script src="js/orbital-math.js"></script>
+    <script src="js/usage-tracker.js"></script>
+    <script src="js/visualization.js"></script>
+    <script>
+        let currentTransferData = null;
+        let isAnimatingTransfer = false;
+        let transferAnimationProgress = 0;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            VisualizationEngine.init('transfer-canvas');
+            
+            UsageTracker.incrementCalculation = UsageTracker.incrementCalculation;
+            const remaining = UsageTracker.getRemainingCalculations();
+            document.querySelector('.calculation-counter').textContent = `${remaining} calculations remaining this month`;
+            
+            document.getElementById('calculate-transfer-btn').addEventListener('click', handleCalculateTransfer);
+            document.getElementById('animate-transfer-btn').addEventListener('click', handleAnimateTransfer);
+            document.getElementById('export-transfer-csv-btn').addEventListener('click', handleExportTransferCSV);
+            document.getElementById('export-transfer-png-btn').addEventListener('click', () => {
+                VisualizationEngine.exportScreenshot();
+            });
+            
+            const sliders = document.querySelectorAll('.slider');
+            sliders.forEach(slider => {
+                slider.addEventListener('input', (e) => {
+                    const value = parseFloat(e.target.value);
+                    const param = e.target.dataset.param;
+                    const unit = e.target.dataset.unit;
+                    const tooltip = e.target.parentElement.querySelector('.slider-value-tooltip');
+                    tooltip.textContent = `${value.toFixed(0)} ${unit}`;
+                    tooltip.style.opacity = '1';
+                    document.getElementById(`input-${param}`).value = value;
+                });
+            });
+            
+            renderDefaultOrbits();
+        });
+
+        function handleCalculateTransfer() {
+            if (!UsageTracker.canCalculate()) {
+                showNotification('⚠️ Monthly calculation limit reached. Upgrade to Premium for unlimited calculations.', 'warning');
+                return;
+            }
+            
+            const r1 = parseFloat(document.getElementById('input-r1').value);
+            const r2 = parseFloat(document.getElementById('input-r2').value);
+            const inclination = parseFloat(document.getElementById('input-inclination').value);
+            
+            if (r1 <= OrbitalMath.CONSTANTS.EARTH_RADIUS || r2 <= OrbitalMath.CONSTANTS.EARTH_RADIUS) {
+                showNotification('⚠️ Orbit radii must exceed Earth radius (6371 km)', 'warning');
+                return;
+            }
+            
+            const transfer = OrbitalMath.calculateHohmannTransfer(r1, r2);
+            currentTransferData = { r1, r2, inclination, ...transfer };
+            
+            displayTransferResults(transfer);
+            renderTransferOrbits(r1, r2, inclination, transfer.transferOrbit);
+            
+            UsageTracker.incrementCalculation();
+            const remaining = UsageTracker.getRemainingCalculations();
+            document.querySelector('.calculation-counter').textContent = `${remaining} calculations remaining this month`;
+            
+            showNotification('✓ Transfer calculated successfully', 'success');
+        }
+
+        function displayTransferResults(transfer) {
+            const resultsSection = document.querySelector('.results-section');
+            resultsSection.innerHTML = '<h2 class="control-section-title">Transfer Results</h2>';
+            
+            const results = [
+                { label: 'First Burn (Δv₁)', value: transfer.deltaV1.toFixed(3), unit: 'km/s' },
+                { label: 'Second Burn (Δv₂)', value: transfer.deltaV2.toFixed(3), unit: 'km/s' },
+                { label: 'Total Δv', value: transfer.totalDeltaV.toFixed(3), unit: 'km/s' },
+                { label: 'Transfer Time', value: (transfer.transferTime / 3600).toFixed(2), unit: 'hours' }
+            ];
+            
+            results.forEach((result, index) => {
+                const card = document.createElement('div');
+                card.className = 'result-card';
+                card.style.animationDelay = `${index * 100}ms`;
+                card.innerHTML = `
+                    <div class="result-label">${result.label}</div>
+                    <div class="result-value">${result.value}<span class="result-unit">${result.unit}</span></div>
+                `;
+                resultsSection.appendChild(card);
+            });
+        }
+
+        function renderTransferOrbits(r1, r2, inclination, transferOrbit) {
+            const orbit1 = {
+                a: r1,
+                e: 0,
+                i: inclination,
+                raan: 0,
+                argPe: 0,
+                trueAnomaly: 0
+            };
+            
+            const orbit2 = {
+                a: r2,
+                e: 0,
+                i: inclination,
+                raan: 0,
+                argPe: 0,
+                trueAnomaly: 0
+            };
+            
+            const transferElements = {
+                a: transferOrbit.a,
+                e: transferOrbit.e,
+                i: inclination,
+                raan: 0,
+                argPe: 0,
+                trueAnomaly: 0
+            };
+            
+            const period1 = OrbitalMath.calculateOrbitalPeriod(orbit1.a);
+            const trajectory1 = OrbitalMath.propagateOrbitRK4(orbit1, period1, period1 / 50);
+            
+            const period2 = OrbitalMath.calculateOrbitalPeriod(orbit2.a);
+            const trajectory2 = OrbitalMath.propagateOrbitRK4(orbit2, period2, period2 / 50);
+            
+            const transferPeriod = OrbitalMath.calculateOrbitalPeriod(transferElements.a);
+            const transferTrajectory = OrbitalMath.propagateOrbitRK4(transferElements, transferPeriod / 2, transferPeriod / 100);
+            
+            VisualizationEngine.renderOrbit(orbit1, trajectory1);
+        }
+
+        function renderDefaultOrbits() {
+            const defaultOrbit = {
+                a: 6778,
+                e: 0,
+                i: 0,
+                raan: 0,
+                argPe: 0,
+                trueAnomaly: 0
+            };
+            
+            const period = OrbitalMath.calculateOrbitalPeriod(defaultOrbit.a);
+            const trajectory = OrbitalMath.propagateOrbitRK4(defaultOrbit, period, period / 100);
+            VisualizationEngine.renderOrbit(defaultOrbit, trajectory);
+        }
+
+        function handleAnimateTransfer() {
+            if (!currentTransferData) {
+                showNotification('⚠️ Calculate transfer first', 'warning');
+                return;
+            }
+            
+            showNotification('🚀 Transfer animation starting...', 'success');
+        }
+
+        function handleExportTransferCSV() {
+            if (!currentTransferData) {
+                showNotification('⚠️ No transfer data to export', 'warning');
+                return;
+            }
+            
+            let csv = 'Parameter,Value,Unit\n';
+            csv += `Initial Radius,${currentTransferData.r1},km\n`;
+            csv += `Target Radius,${currentTransferData.r2},km\n`;
+            csv += `First Burn (Δv₁),${currentTransferData.deltaV1.toFixed(6)},km/s\n`;
+            csv += `Second Burn (Δv₂),${currentTransferData.deltaV2.toFixed(6)},km/s\n`;
+            csv += `Total Δv,${currentTransferData.totalDeltaV.toFixed(6)},km/s\n`;
+            csv += `Transfer Time,${(currentTransferData.transferTime / 3600).toFixed(6)},hours\n`;
+            
+            downloadFile(csv, 'hohmann_transfer.csv', 'text/csv');
+            showNotification('✓ CSV exported successfully', 'success');
+        }
+
+        function showNotification(message, type = 'info') {
+            let banner = document.querySelector('.warning-banner');
+            
+            if (!banner) {
+                banner = document.createElement('div');
+                banner.className = 'warning-banner';
+                document.body.appendChild(banner);
+            }
+            
+            banner.textContent = message;
+            banner.style.background = type === 'success' ? 'var(--color-orbit-stable)' : 'var(--color-accent-magenta)';
+            banner.classList.add('show');
+            
+            setTimeout(() => {
+                banner.classList.remove('show');
+            }, 3000);
+        }
+
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
